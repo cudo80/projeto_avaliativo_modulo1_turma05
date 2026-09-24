@@ -219,3 +219,6 @@ __marimo__/
 
 # Data directory
 /data/
+
+# Kilo
+/.kilo/
