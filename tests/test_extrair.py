@@ -21,7 +21,7 @@ if POSTGRESQL_DIR not in sys.path:
     sys.path.insert(0, POSTGRESQL_DIR)
 
 SPEC = importlib.util.spec_from_file_location(
-    "extrair", PROJECT_ROOT / "1_extrair.py"
+    "extrair", PROJECT_ROOT / "postgresql" / "1_extrair.py"
 )
 extrair = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None

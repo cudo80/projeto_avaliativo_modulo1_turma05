@@ -16,7 +16,11 @@ import pandas as pd
 import psycopg2
 import requests
 
-from postgresql import config
+try:
+	from postgresql import config
+except ModuleNotFoundError:
+	# Permite executar o arquivo diretamente a partir da pasta postgresql.
+	import config
 
 
 TABELAS_CSV = {
