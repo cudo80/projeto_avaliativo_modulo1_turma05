@@ -6,7 +6,10 @@ banco.py
 import psycopg2
 from psycopg2 import Error
 
-from config import POSTGRES_CONFIG
+try:
+    from .config import POSTGRES_CONFIG
+except ImportError:
+    from config import POSTGRES_CONFIG
 
 
 def conectar():

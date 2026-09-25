@@ -16,7 +16,7 @@ import pandas as pd
 import psycopg2
 import requests
 
-import config
+from postgresql import config
 
 
 TABELAS_CSV = {
@@ -26,7 +26,7 @@ TABELAS_CSV = {
 	"2025_Trecho.csv": "raw_trecho",
 }
 
-TAMANHO_LOTE = 1_000
+TAMANHO_LOTE = getattr(config, "TAMANHO_LOTE", 1_000)
 
 
 def normalizar_nome_coluna(nome: str) -> str:

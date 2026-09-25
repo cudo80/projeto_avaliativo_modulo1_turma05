@@ -13,6 +13,8 @@ from pathlib import Path
 PASTA_RAIZ = Path(__file__).resolve().parent
 # onde o .zip e os .csv ficam (ignorada pelo Git)
 PASTA_DADOS = PASTA_RAIZ / "data"
+# Alias em inglês usado pelo extrator.
+DATA_DIR = PASTA_DADOS
 
 
 # ---------------------------------------------------------------------------
@@ -46,6 +48,10 @@ POSTGRES_CONFIG = {
     "dbname": os.environ.get("POSTGRES_DATABASE", "transparencia"),
 }
 
+# Aliases usados por scripts da raiz do projeto.
+# Mantêm uma única fonte de configuração sem quebrar os módulos existentes.
+DB_CONFIG = POSTGRES_CONFIG
+
 
 # ---------------------------------------------------------------------------
 # O que vamos baixar e processar
@@ -62,6 +68,8 @@ DRIVE_FILE_ID = "1J_0kDNI_2p3wHtmgbiwTpGD744beMvdL"
 # Tamanho do bloco de leitura/insercao (numero de linhas por vez).
 # Ler tudo de uma vez estouraria a memoria; por isso lemos em "pedacos".
 TAMANHO_BLOCO = 50_000
+# Alias usado pelo extrator para manter o mesmo tamanho de lote.
+TAMANHO_LOTE = TAMANHO_BLOCO
 
 
 # ---------------------------------------------------------------------------
