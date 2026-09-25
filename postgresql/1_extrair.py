@@ -260,7 +260,7 @@ def executar_pipeline() -> None:
 	"""
 	file_id = obter_configuracao("DRIVE_FILE_ID")
 	pasta_dados = Path(getattr(config, "DATA_DIR", "data"))
-	caminho_zip = pasta_dados / "viagens_2025.zip"
+	caminho_zip = pasta_dados / "viagens_2025_6meses.zip"
 	pasta_csv = pasta_dados / "raw_csv"
 
 	baixar_zip_google_drive(file_id, caminho_zip)
