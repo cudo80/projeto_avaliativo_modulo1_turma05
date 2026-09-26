@@ -196,18 +196,15 @@ def inserir_lote(conexao, tabela: str, quadro: pd.DataFrame) -> None:
 	"""Insere um bloco de registros na tabela Raw.
 
 	Monta um INSERT parametrizado e envia os registros ao PostgreSQL com
-	``executemany``. Os parâmetros evitam concatenar valores diretamente no SQL,
-	enquanto os valores vazios são convertidos para ``NULL`` na tabela Raw.
+	``executemany``. Os parâmetros evitam concatenar valores diretamente no SQL
+	e a camada Raw preserva inclusive strings vazias do CSV.
 	"""
 	colunas = list(quadro.columns)
 	marcadores = ", ".join(["%s"] * len(colunas))
 	nomes = ", ".join(f'"{coluna}"' for coluna in colunas)
 	consulta = f'INSERT INTO "{tabela}" ({nomes}) VALUES ({marcadores})'
 
-	registros = [
-		tuple(None if valor == "" else valor for valor in linha)
-		for linha in quadro.itertuples(index=False, name=None)
-	]
+	registros = list(quadro.itertuples(index=False, name=None))
 	with conexao.cursor() as cursor:
 		cursor.executemany(consulta, registros)
 

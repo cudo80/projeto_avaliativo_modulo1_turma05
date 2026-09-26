@@ -144,7 +144,7 @@ def test_ler_csv_em_blocos_configura_formato_do_arquivo(monkeypatch, tmp_path):
     )
 
 
-def test_inserir_lote_monta_insert_e_converte_vazio_para_null():
+def test_inserir_lote_monta_insert_e_preserva_string_vazia_na_raw():
     conexao = MagicMock()
     cursor = conexao.cursor.return_value.__enter__.return_value
     quadro = pd.DataFrame({"id": ["1"], "nome": [""]})
@@ -153,7 +153,7 @@ def test_inserir_lote_monta_insert_e_converte_vazio_para_null():
 
     sql, registros = cursor.executemany.call_args.args
     assert sql == 'INSERT INTO "raw_teste" ("id", "nome") VALUES (%s, %s)'
-    assert registros == [("1", None)]
+    assert registros == [("1", "")]
 
 
 def test_carregar_csv_raw_trunca_valida_e_insere_lotes(monkeypatch, tmp_path):

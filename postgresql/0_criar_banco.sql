@@ -103,70 +103,81 @@ CREATE TABLE IF NOT EXISTS silver_trecho (
 
 
 CREATE TABLE IF NOT EXISTS raw_viagem (
-    id_viagem VARCHAR(255),
-    num_proposta VARCHAR(255),
+    identificador_do_processo_de_viagem VARCHAR(255),
+    numero_da_proposta_pcdp VARCHAR(255),
     situacao VARCHAR(255),
     viagem_urgente VARCHAR(255),
-    cod_orgao_superior VARCHAR(255),
-    nome_orgao_superior VARCHAR(255),
-    nome_viajante VARCHAR(255),
+    justificativa_urgencia_viagem VARCHAR(255),
+    codigo_do_orgao_superior VARCHAR(255),
+    nome_do_orgao_superior VARCHAR(255),
+    codigo_orgao_solicitante VARCHAR(255),
+    nome_orgao_solicitante VARCHAR(255),
+    cpf_viajante VARCHAR(255),
+    nome VARCHAR(255),
     cargo VARCHAR(255),
-    data_inicio VARCHAR(255),
-    data_fim VARCHAR(255),
+    funcao VARCHAR(255),
+    descricao_funcao VARCHAR(255),
+    periodo_data_de_inicio VARCHAR(255),
+    periodo_data_de_fim VARCHAR(255),
     destinos VARCHAR(4000),
     motivo VARCHAR(4000),
     valor_diarias VARCHAR(255),
     valor_passagens VARCHAR(255),
     valor_devolucao VARCHAR(255),
-    valor_outros_gastos VARCHAR(255),
-    cpf_viajante VARCHAR(255),
-    funcao VARCHAR(255)
+    valor_outros_gastos VARCHAR(255)
 );
 
 
 CREATE TABLE IF NOT EXISTS raw_passagem (
-    id_passagem VARCHAR(255),
-    id_viagem VARCHAR(255),
-    meio_transporte VARCHAR(255),
+    identificador_do_processo_de_viagem VARCHAR(255),
+    numero_da_proposta_pcdp VARCHAR(255),
+    meio_de_transporte VARCHAR(255),
     pais_origem_ida VARCHAR(255),
     uf_origem_ida VARCHAR(255),
     cidade_origem_ida VARCHAR(255),
     pais_destino_ida VARCHAR(255),
     uf_destino_ida VARCHAR(255),
     cidade_destino_ida VARCHAR(255),
-    valor_passagem VARCHAR(255),
-    taxa_servico VARCHAR(255),
-    data_emissao VARCHAR(255),
     pais_origem_volta VARCHAR(255),
     uf_origem_volta VARCHAR(255),
     cidade_origem_volta VARCHAR(255),
     pais_destino_volta VARCHAR(255),
     uf_destino_volta VARCHAR(255),
-    cidade_destino_volta VARCHAR(255)
+    cidade_destino_volta VARCHAR(255),
+    valor_da_passagem VARCHAR(255),
+    taxa_de_servico VARCHAR(255),
+    data_da_emissao_compra VARCHAR(255),
+    hora_da_emissao_compra VARCHAR(255)
 );
 
 
 CREATE TABLE IF NOT EXISTS raw_pagamento (
-    id_pagamento VARCHAR(255),
-    id_viagem VARCHAR(255),
-    num_proposta VARCHAR(255),
-    nome_orgao_pagador VARCHAR(255),
-    nome_ug_pagadora VARCHAR(255),
-    tipo_pagamento VARCHAR(255),
+    identificador_do_processo_de_viagem VARCHAR(255),
+    numero_da_proposta_pcdp VARCHAR(255),
+    codigo_do_orgao_superior VARCHAR(255),
+    nome_do_orgao_superior VARCHAR(255),
+    codigo_do_orgao_pagador VARCHAR(255),
+    nome_do_orgao_pagador VARCHAR(255),
+    codigo_da_unidade_gestora_pagadora VARCHAR(255),
+    nome_da_unidade_gestora_pagadora VARCHAR(255),
+    tipo_de_pagamento VARCHAR(255),
     valor VARCHAR(255)
 );
 
 
 CREATE TABLE IF NOT EXISTS raw_trecho (
-    id_trecho VARCHAR(255),
-    id_viagem VARCHAR(255),
+    identificador_do_processo_de_viagem VARCHAR(255),
+    numero_da_proposta_pcdp VARCHAR(255),
     sequencia_trecho VARCHAR(255),
     origem_data VARCHAR(255),
+    origem_pais VARCHAR(255),
     origem_uf VARCHAR(255),
     origem_cidade VARCHAR(255),
     destino_data VARCHAR(255),
+    destino_pais VARCHAR(255),
     destino_uf VARCHAR(255),
     destino_cidade VARCHAR(255),
-    meio_transporte VARCHAR(255),
-    numero_diarias VARCHAR(255)
+    meio_de_transporte VARCHAR(255),
+    numero_diarias VARCHAR(255),
+    missao VARCHAR(255)
 );

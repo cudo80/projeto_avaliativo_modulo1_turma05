@@ -50,6 +50,41 @@ def test_insert_passagem_mapeia_uf_e_cidade_de_destino():
     assert "cidade_destino_ida" in comando
 
 
+@pytest.mark.parametrize(
+    ("gerador", "origem", "destino"),
+    [
+        (
+            transformar.gerar_sql_viagem,
+            "identificador_do_processo_de_viagem",
+            "id_viagem",
+        ),
+        (
+            transformar.gerar_sql_passagem,
+            "valor_da_passagem",
+            "valor_passagem",
+        ),
+        (
+            transformar.gerar_sql_pagamento,
+            "tipo_de_pagamento",
+            "tipo_pagamento",
+        ),
+        (
+            transformar.gerar_sql_trecho,
+            "meio_de_transporte",
+            "meio_transporte",
+        ),
+    ],
+)
+def test_transformacao_mapeia_cabecalho_raw_normalizado_para_coluna_silver(
+    gerador, origem, destino
+):
+    comando = gerador()
+    selecao = comando.split("SELECT", maxsplit=1)[1].split("FROM", maxsplit=1)[0]
+
+    assert origem in selecao
+    assert f"AS {destino}" in selecao
+
+
 def test_transformar_trunca_e_carrega_na_ordem_das_dependencias():
     conexao = MagicMock()
     cursor = conexao.cursor.return_value.__enter__.return_value

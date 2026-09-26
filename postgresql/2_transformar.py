@@ -88,22 +88,22 @@ INSERT INTO silver_viagem (
     valor_outros_gastos
 )
 SELECT
-    {_texto_sql('id_viagem')},
-    {_texto_sql('num_proposta')},
-    {_texto_sql('situacao')},
-    {_texto_sql('viagem_urgente')},
-    {_texto_sql('cod_orgao_superior')},
-    {_texto_sql('nome_orgao_superior')},
-    {_texto_sql('nome_viajante')},
-    {_texto_sql('cargo')},
-    {_data_sql('data_inicio')},
-    {_data_sql('data_fim')},
-    {_texto_sql('destinos')},
-    {_texto_sql('motivo')},
-    {_decimal_sql('valor_diarias')},
-    {_decimal_sql('valor_passagens')},
-    {_decimal_sql('valor_devolucao')},
-    {_decimal_sql('valor_outros_gastos')}
+    {_texto_sql('identificador_do_processo_de_viagem')} AS id_viagem,
+    {_texto_sql('numero_da_proposta_pcdp')} AS num_proposta,
+    {_texto_sql('situacao')} AS situacao,
+    {_texto_sql('viagem_urgente')} AS viagem_urgente,
+    {_texto_sql('codigo_do_orgao_superior')} AS cod_orgao_superior,
+    {_texto_sql('nome_do_orgao_superior')} AS nome_orgao_superior,
+    {_texto_sql('nome')} AS nome_viajante,
+    {_texto_sql('cargo')} AS cargo,
+    {_data_sql('periodo_data_de_inicio')} AS data_inicio,
+    {_data_sql('periodo_data_de_fim')} AS data_fim,
+    {_texto_sql('destinos')} AS destinos,
+    {_texto_sql('motivo')} AS motivo,
+    {_decimal_sql('valor_diarias')} AS valor_diarias,
+    {_decimal_sql('valor_passagens')} AS valor_passagens,
+    {_decimal_sql('valor_devolucao')} AS valor_devolucao,
+    {_decimal_sql('valor_outros_gastos')} AS valor_outros_gastos
 FROM raw_viagem
 """
 
@@ -124,17 +124,17 @@ INSERT INTO silver_passagem (
     data_emissao
 )
 SELECT
-    {_texto_sql('id_viagem')},
-    {_texto_sql('meio_transporte')},
-    {_texto_sql('pais_origem_ida')},
-    {_texto_sql('uf_origem_ida')},
-    {_texto_sql('cidade_origem_ida')},
-    {_texto_sql('pais_destino_ida')},
-    {_texto_sql('uf_destino_ida')},
-    {_texto_sql('cidade_destino_ida')},
-    {_decimal_sql('valor_passagem')},
-    {_decimal_sql('taxa_servico')},
-    {_data_sql('data_emissao')}
+    {_texto_sql('identificador_do_processo_de_viagem')} AS id_viagem,
+    {_texto_sql('meio_de_transporte')} AS meio_transporte,
+    {_texto_sql('pais_origem_ida')} AS pais_origem_ida,
+    {_texto_sql('uf_origem_ida')} AS uf_origem_ida,
+    {_texto_sql('cidade_origem_ida')} AS cidade_origem_ida,
+    {_texto_sql('pais_destino_ida')} AS pais_destino_ida,
+    {_texto_sql('uf_destino_ida')} AS uf_destino_ida,
+    {_texto_sql('cidade_destino_ida')} AS cidade_destino_ida,
+    {_decimal_sql('valor_da_passagem')} AS valor_passagem,
+    {_decimal_sql('taxa_de_servico')} AS taxa_servico,
+    {_data_sql('data_da_emissao_compra')} AS data_emissao
 FROM raw_passagem
 """
 
@@ -150,12 +150,12 @@ INSERT INTO silver_pagamento (
     valor
 )
 SELECT
-    {_texto_sql('id_viagem')},
-    {_texto_sql('num_proposta')},
-    {_texto_sql('nome_orgao_pagador')},
-    {_texto_sql('nome_ug_pagadora')},
-    {_texto_sql('tipo_pagamento')},
-    {_decimal_sql('valor')}
+    {_texto_sql('identificador_do_processo_de_viagem')} AS id_viagem,
+    {_texto_sql('numero_da_proposta_pcdp')} AS num_proposta,
+    {_texto_sql('nome_do_orgao_pagador')} AS nome_orgao_pagador,
+    {_texto_sql('nome_da_unidade_gestora_pagadora')} AS nome_ug_pagadora,
+    {_texto_sql('tipo_de_pagamento')} AS tipo_pagamento,
+    {_decimal_sql('valor')} AS valor
 FROM raw_pagamento
 """
 
@@ -175,16 +175,16 @@ INSERT INTO silver_trecho (
     numero_diarias
 )
 SELECT
-    {_texto_sql('id_viagem')},
-    {_inteiro_sql('sequencia_trecho')},
-    {_data_sql('origem_data')},
-    {_texto_sql('origem_uf')},
-    {_texto_sql('origem_cidade')},
-    {_data_sql('destino_data')},
-    {_texto_sql('destino_uf')},
-    {_texto_sql('destino_cidade')},
-    {_texto_sql('meio_transporte')},
-    {_decimal_sql('numero_diarias')}
+    {_texto_sql('identificador_do_processo_de_viagem')} AS id_viagem,
+    {_inteiro_sql('sequencia_trecho')} AS sequencia_trecho,
+    {_data_sql('origem_data')} AS origem_data,
+    {_texto_sql('origem_uf')} AS origem_uf,
+    {_texto_sql('origem_cidade')} AS origem_cidade,
+    {_data_sql('destino_data')} AS destino_data,
+    {_texto_sql('destino_uf')} AS destino_uf,
+    {_texto_sql('destino_cidade')} AS destino_cidade,
+    {_texto_sql('meio_de_transporte')} AS meio_transporte,
+    {_decimal_sql('numero_diarias')} AS numero_diarias
 FROM raw_trecho
 """
 
