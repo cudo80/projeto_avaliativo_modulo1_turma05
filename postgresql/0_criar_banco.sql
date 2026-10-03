@@ -1,6 +1,6 @@
 -- CRIA O DATABASE --
 
-CREATE DATABASE IF NOT EXISTS transparencia;
+CREATE DATABASE transparencia;
 
 -- DROP TABLES IF EXISTS ANTES DE CRIAR AS TABELAS --
 
@@ -114,7 +114,6 @@ CREATE TABLE IF NOT EXISTS silver_viagem (
     valor_passagens DECIMAL(10, 2),
     valor_devolucao DECIMAL(10, 2),
     valor_outros_gastos DECIMAL(10, 2),
-
     valor_total DECIMAL(12, 2)
         GENERATED ALWAYS AS (
             COALESCE(valor_diarias, 0)
@@ -122,12 +121,10 @@ CREATE TABLE IF NOT EXISTS silver_viagem (
             - COALESCE(valor_devolucao, 0)
             + COALESCE(valor_outros_gastos, 0)
         ) STORED,
-
     duracao_dias INT
         GENERATED ALWAYS AS (
             data_fim - data_inicio
         ) STORED,
-
     CONSTRAINT pk_silver_viagem PRIMARY KEY (id_viagem),
     CONSTRAINT chk_silver_viagem_valor_diarias
         CHECK (valor_diarias >= 0)
@@ -147,7 +144,6 @@ CREATE TABLE IF NOT EXISTS silver_passagem (
     valor_passagem DECIMAL(10, 2),
     taxa_servico DECIMAL(10, 2),
     data_emissao DATE,
-
     CONSTRAINT pk_silver_passagem PRIMARY KEY (id_passagem),
     CONSTRAINT fk_silver_passagem_viagem
         FOREIGN KEY (id_viagem)
@@ -167,7 +163,6 @@ CREATE TABLE IF NOT EXISTS silver_pagamento (
     nome_ug_pagadora VARCHAR(255),
     tipo_pagamento VARCHAR(50) NOT NULL,
     valor DECIMAL(10, 2),
-
     CONSTRAINT pk_silver_pagamento PRIMARY KEY (id_pagamento),
     CONSTRAINT fk_silver_pagamento_viagem
         FOREIGN KEY (id_viagem)
@@ -189,7 +184,6 @@ CREATE TABLE IF NOT EXISTS silver_trecho (
     destino_cidade VARCHAR(80),
     meio_transporte VARCHAR(50),
     numero_diarias DECIMAL(10, 2),
-
     CONSTRAINT pk_silver_trecho PRIMARY KEY (id_trecho),
     CONSTRAINT fk_silver_trecho_viagem
         FOREIGN KEY (id_viagem)
