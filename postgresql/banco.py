@@ -25,7 +25,7 @@ def conectar():
             f"{POSTGRES_CONFIG['host']}:{POSTGRES_CONFIG['port']} / database "
             f"'{POSTGRES_CONFIG['dbname']}'. Verifique o .env e se voce ja rodou "
             f"o script '0_criar_banco.sql'. Detalhe: {erro}"
-        )
+        ) from erro
 
 
 def executar(conexao, sql):
