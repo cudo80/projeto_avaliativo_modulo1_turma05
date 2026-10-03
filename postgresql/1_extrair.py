@@ -7,19 +7,20 @@ normalizados para que correspondam aos nomes usados nas tabelas Raw.
 from __future__ import annotations
 
 import re
+import tempfile
 import unicodedata
 import zipfile
 from pathlib import Path
 from typing import Iterable
 
 import pandas as pd
-import psycopg2
 import requests
 
 try:
-	from postgresql import config
+	from postgresql import banco, config
 except ModuleNotFoundError:
 	# Permite executar o arquivo diretamente a partir da pasta postgresql.
+	import banco
 	import config
 
 
@@ -87,35 +88,75 @@ def baixar_zip_google_drive(file_id: str, destino: Path) -> Path:
 	streaming, preparando a entrada da etapa de extração sem modificar seu
 	conteúdo original.
 	"""
-	url = "https://drive.google.com/uc"
-	sessao = requests.Session()
-	parametros = {"export": "download", "id": file_id}
-
-	resposta = sessao.get(url, params=parametros, stream=True, timeout=120)
-	resposta.raise_for_status()
-
-	token = next(
-		(
-			valor
-			for chave, valor in resposta.cookies.items()
-			if chave.startswith("download_warning")
-		),
-		None,
-	)
-	if token:
-		parametros["confirm"] = token
-		resposta.close()
-		resposta = sessao.get(url, params=parametros, stream=True, timeout=120)
-		resposta.raise_for_status()
-
+	url = f"https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t"
+	#parametros = {"export": "download", "id": file_id}
 	destino.parent.mkdir(parents=True, exist_ok=True)
-	with destino.open("wb") as arquivo:
-		for bloco in resposta.iter_content(chunk_size=1024 * 1024):
-			if bloco:
-				arquivo.write(bloco)
+	caminho_temporario = None
 
-	resposta.close()
-	return destino
+	try:
+		with requests.Session() as sessao:
+			#resposta = sessao.get(url, params=parametros, stream=True, timeout=120)
+			resposta = sessao.get(url, stream=True, timeout=120)
+			resposta.raise_for_status()
+
+			token = next(
+				(
+					valor
+					for chave, valor in resposta.cookies.items()
+					if chave.startswith("download_warning")
+				),
+				None,
+			)
+			if token:
+				resposta.close()
+				#parametros["confirm"] = token
+				resposta = sessao.get(
+					#url, params=parametros, stream=True, timeout=120
+					url, stream=True, timeout=120
+				)
+				resposta.raise_for_status()
+
+			with resposta:
+				with tempfile.NamedTemporaryFile(
+					mode="wb",
+					prefix=f".{destino.name}.",
+					suffix=".part",
+					dir=destino.parent,
+					delete=False,
+				) as arquivo:
+					caminho_temporario = Path(arquivo.name)
+					for bloco in resposta.iter_content(chunk_size=1024 * 1024):
+						if bloco:
+							arquivo.write(bloco)
+
+		if not zipfile.is_zipfile(caminho_temporario):
+			tipo_conteudo = resposta.headers.get("Content-Type", "desconhecido")
+			raise ValueError(
+				"O Google Drive não retornou um ZIP válido "
+				f"(Content-Type: {tipo_conteudo}). Verifique o ID do arquivo e "
+				"se o compartilhamento permite o download."
+			)
+
+		with zipfile.ZipFile(caminho_temporario) as arquivo_zip:
+			erro_crc = arquivo_zip.testzip()
+			if erro_crc:
+				raise ValueError(
+					f"O ZIP baixado está corrompido; primeiro arquivo inválido: {erro_crc}"
+				)
+
+			nomes_zip = {Path(nome).name for nome in arquivo_zip.namelist()}
+			ausentes = set(TABELAS_CSV) - nomes_zip
+			if ausentes:
+				raise ValueError(
+					"O ZIP baixado não contém todos os CSVs esperados: "
+					+ ", ".join(sorted(ausentes))
+				)
+
+		caminho_temporario.replace(destino)
+		return destino
+	finally:
+		if caminho_temporario is not None:
+			caminho_temporario.unlink(missing_ok=True)
 
 
 def extrair_zip(caminho_zip: Path, pasta_destino: Path) -> dict[str, Path]:
@@ -126,6 +167,13 @@ def extrair_zip(caminho_zip: Path, pasta_destino: Path) -> dict[str, Path]:
 	dos dados e retorna um dicionário que relaciona cada arquivo ao seu caminho
 	local.
 	"""
+	# Insira uma validação para garantir que o arquivo ZIP existe e é um arquivo ZIP válido
+	if not caminho_zip.exists():
+		raise FileNotFoundError("O arquivo ZIP não existe.")
+
+	if not zipfile.is_zipfile(caminho_zip):
+		raise ValueError("O arquivo não é um arquivo ZIP válido.")
+
 	pasta_destino.mkdir(parents=True, exist_ok=True)
 
 	with zipfile.ZipFile(caminho_zip) as arquivo_zip:
@@ -147,14 +195,12 @@ def extrair_zip(caminho_zip: Path, pasta_destino: Path) -> dict[str, Path]:
 
 
 def obter_conexao():
-	"""Abre a conexão com o PostgreSQL usando ``DB_CONFIG``.
+	"""Abre a conexão usando a configuração carregada por ``banco.py``.
 
-	Essa função concentra a criação da conexão em um único ponto. Assim, as
-	demais funções trabalham apenas com a conexão recebida e não precisam
-	conhecer detalhes de host, porta, banco ou credenciais.
+	Mantida como fachada para preservar a API existente do extrator; a lógica
+	de conexão fica exclusivamente em ``banco.conectar``.
 	"""
-	parametros = obter_configuracao("DB_CONFIG")
-	return psycopg2.connect(**parametros)
+	return banco.conectar()
 
 
 def obter_colunas_tabela(conexao, tabela: str) -> list[str]:
@@ -205,8 +251,7 @@ def inserir_lote(conexao, tabela: str, quadro: pd.DataFrame) -> None:
 	consulta = f'INSERT INTO "{tabela}" ({nomes}) VALUES ({marcadores})'
 
 	registros = list(quadro.itertuples(index=False, name=None))
-	with conexao.cursor() as cursor:
-		cursor.executemany(consulta, registros)
+	banco.inserir_em_lote(conexao, consulta, registros)
 
 
 def carregar_csv_raw(conexao, caminho_csv: Path, tabela: str) -> int:
@@ -220,8 +265,7 @@ def carregar_csv_raw(conexao, caminho_csv: Path, tabela: str) -> int:
 	total = 0
 	primeira_linha = True
 
-	with conexao.cursor() as cursor:
-		cursor.execute(f'TRUNCATE TABLE "{tabela}" RESTART IDENTITY')
+	banco.executar(conexao, f'TRUNCATE TABLE "{tabela}" RESTART IDENTITY')
 
 	for bloco in ler_csv_em_blocos(caminho_csv):
 		bloco.columns = [normalizar_nome_coluna(coluna) for coluna in bloco.columns]
@@ -256,8 +300,9 @@ def executar_pipeline() -> None:
 	desfaz a transação e impede uma camada Raw parcialmente atualizada.
 	"""
 	file_id = obter_configuracao("DRIVE_FILE_ID")
+	print(f"OBTENDO ARQUIVO ZIP DO GOOGLE DRIVE... {file_id}")
 	pasta_dados = Path(getattr(config, "DATA_DIR", "data"))
-	caminho_zip = pasta_dados / "viagens_2025_6meses.zip"
+	caminho_zip = pasta_dados / "viagens.zip"
 	pasta_csv = pasta_dados / "raw_csv"
 
 	baixar_zip_google_drive(file_id, caminho_zip)
@@ -280,7 +325,7 @@ if __name__ == "__main__":
 	try:
 		executar_pipeline()
 		print("Extração e carga da camada Raw concluídas com sucesso.")
-	except (OSError, ValueError, requests.RequestException, psycopg2.Error) as erro:
+	except (OSError, ValueError, RuntimeError, requests.RequestException, banco.Error) as erro:
 		print(f"Falha no pipeline de extração: {erro}")
 		raise SystemExit(1) from erro
 
