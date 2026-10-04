@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS raw_viagem (
     numero_da_proposta_pcdp VARCHAR(255),
     situacao VARCHAR(255),
     viagem_urgente VARCHAR(255),
-    justificativa_urgencia_viagem VARCHAR(255),
+    justificativa_urgencia_viagem TEXT,
     codigo_do_orgao_superior VARCHAR(255),
     nome_do_orgao_superior VARCHAR(255),
     codigo_orgao_solicitante VARCHAR(255),
