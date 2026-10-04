@@ -251,7 +251,14 @@ def inserir_lote(conexao, tabela: str, quadro: pd.DataFrame) -> None:
 	consulta = f'INSERT INTO "{tabela}" ({nomes}) VALUES ({marcadores})'
 
 	registros = list(quadro.itertuples(index=False, name=None))
-	banco.inserir_em_lote(conexao, consulta, registros)
+	if not registros:
+		return
+
+	# Executa na transação do pipeline; não usar o helper de banco,
+	# que confirma cada lote individualmente.
+	cursor = conexao.cursor()
+	cursor.executemany(consulta, registros)
+	cursor.close()
 
 
 def carregar_csv_raw(conexao, caminho_csv: Path, tabela: str) -> int:
@@ -265,7 +272,11 @@ def carregar_csv_raw(conexao, caminho_csv: Path, tabela: str) -> int:
 	total = 0
 	primeira_linha = True
 
-	banco.executar(conexao, f'TRUNCATE TABLE "{tabela}" RESTART IDENTITY')
+	# O TRUNCATE deve permanecer na mesma transação dos INSERTs para que o
+	# rollback do pipeline restaure os dados anteriores em caso de falha.
+	cursor = conexao.cursor()
+	cursor.execute(f'TRUNCATE TABLE "{tabela}" RESTART IDENTITY')
+	cursor.close()
 
 	for bloco in ler_csv_em_blocos(caminho_csv):
 		bloco.columns = [normalizar_nome_coluna(coluna) for coluna in bloco.columns]
