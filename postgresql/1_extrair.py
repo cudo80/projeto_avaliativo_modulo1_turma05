@@ -89,13 +89,11 @@ def baixar_zip_google_drive(file_id: str, destino: Path) -> Path:
 	conteúdo original.
 	"""
 	url = f"https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t"
-	#parametros = {"export": "download", "id": file_id}
 	destino.parent.mkdir(parents=True, exist_ok=True)
 	caminho_temporario = None
 
 	try:
 		with requests.Session() as sessao:
-			#resposta = sessao.get(url, params=parametros, stream=True, timeout=120)
 			resposta = sessao.get(url, stream=True, timeout=120)
 			resposta.raise_for_status()
 
@@ -109,9 +107,7 @@ def baixar_zip_google_drive(file_id: str, destino: Path) -> Path:
 			)
 			if token:
 				resposta.close()
-				#parametros["confirm"] = token
 				resposta = sessao.get(
-					#url, params=parametros, stream=True, timeout=120
 					url, stream=True, timeout=120
 				)
 				resposta.raise_for_status()
@@ -167,7 +163,6 @@ def extrair_zip(caminho_zip: Path, pasta_destino: Path) -> dict[str, Path]:
 	dos dados e retorna um dicionário que relaciona cada arquivo ao seu caminho
 	local.
 	"""
-	# Insira uma validação para garantir que o arquivo ZIP existe e é um arquivo ZIP válido
 	if not caminho_zip.exists():
 		raise FileNotFoundError("O arquivo ZIP não existe.")
 
@@ -254,8 +249,6 @@ def inserir_lote(conexao, tabela: str, quadro: pd.DataFrame) -> None:
 	if not registros:
 		return
 
-	# Executa na transação do pipeline; não usar o helper de banco,
-	# que confirma cada lote individualmente.
 	cursor = conexao.cursor()
 	cursor.executemany(consulta, registros)
 	cursor.close()
@@ -271,9 +264,6 @@ def carregar_csv_raw(conexao, caminho_csv: Path, tabela: str) -> int:
 	colunas_tabela = obter_colunas_tabela(conexao, tabela)
 	total = 0
 	primeira_linha = True
-
-	# O TRUNCATE deve permanecer na mesma transação dos INSERTs para que o
-	# rollback do pipeline restaure os dados anteriores em caso de falha.
 	cursor = conexao.cursor()
 	cursor.execute(f'TRUNCATE TABLE "{tabela}" RESTART IDENTITY')
 	cursor.close()
@@ -311,7 +301,6 @@ def executar_pipeline() -> None:
 	desfaz a transação e impede uma camada Raw parcialmente atualizada.
 	"""
 	file_id = obter_configuracao("DRIVE_FILE_ID")
-	print(f"OBTENDO ARQUIVO ZIP DO GOOGLE DRIVE... {file_id}")
 	pasta_dados = Path(getattr(config, "DATA_DIR", "data"))
 	caminho_zip = pasta_dados / "viagens.zip"
 	pasta_csv = pasta_dados / "raw_csv"
