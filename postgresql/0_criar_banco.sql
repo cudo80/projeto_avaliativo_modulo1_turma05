@@ -121,10 +121,7 @@ CREATE TABLE IF NOT EXISTS silver_viagem (
             - COALESCE(valor_devolucao, 0)
             + COALESCE(valor_outros_gastos, 0)
         ) STORED,
-    duracao_dias INT
-        GENERATED ALWAYS AS (
-            data_fim - data_inicio
-        ) STORED,
+    duracao_dias INT,
     CONSTRAINT pk_silver_viagem PRIMARY KEY (id_viagem),
     CONSTRAINT chk_silver_viagem_valor_diarias
         CHECK (valor_diarias >= 0)

@@ -3,8 +3,9 @@
 A transformação é executada no PostgreSQL para evitar carregar todas as linhas
 em memória. Textos vazios viram NULL, datas no formato DD/MM/AAAA são
 convertidas para DATE e valores com vírgula decimal são convertidos para
-DECIMAL. As colunas ``valor_total`` e ``duracao_dias`` são calculadas pelo
-próprio banco, conforme definido em ``0_criar_banco.sql``.
+DECIMAL. A coluna ``valor_total`` é calculada pelo próprio banco, conforme
+definido em ``0_criar_banco.sql``. A transformação preenche ``duracao_dias``
+com ``data_fim - data_inicio + 1``, contando o dia inicial e o final.
 """
 
 from __future__ import annotations
@@ -68,6 +69,7 @@ def _inteiro_sql(coluna: str) -> str:
 
 
 def gerar_sql_viagem() -> str:
+    """Gera a carga de viagens com duração inclusiva; datas ausentes geram NULL."""
     return f"""\
 INSERT INTO silver_viagem (
     id_viagem,
@@ -85,7 +87,8 @@ INSERT INTO silver_viagem (
     valor_diarias,
     valor_passagens,
     valor_devolucao,
-    valor_outros_gastos
+    valor_outros_gastos,
+    duracao_dias
 )
 SELECT
     {_texto_sql('identificador_do_processo_de_viagem')} AS id_viagem,
@@ -103,7 +106,9 @@ SELECT
     {_decimal_sql('valor_diarias')} AS valor_diarias,
     {_decimal_sql('valor_passagens')} AS valor_passagens,
     {_decimal_sql('valor_devolucao')} AS valor_devolucao,
-    {_decimal_sql('valor_outros_gastos')} AS valor_outros_gastos
+    {_decimal_sql('valor_outros_gastos')} AS valor_outros_gastos,
+    ({_data_sql('periodo_data_de_fim')})
+        - ({_data_sql('periodo_data_de_inicio')}) + 1 AS duracao_dias
 FROM raw_viagem
 """
 
